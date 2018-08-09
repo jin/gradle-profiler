@@ -1,9 +1,8 @@
 package org.gradle.profiler.report;
 
 import com.kstruct.gethostname4j.Hostname;
-import org.gradle.profiler.BenchmarkResult;
-import org.gradle.profiler.BuildInvocationResult;
-import org.gradle.profiler.BuildScenarioResult;
+import org.gradle.internal.impldep.org.apache.commons.lang.StringUtils;
+import org.gradle.profiler.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -97,6 +96,22 @@ public class HtmlGenerator extends AbstractGenerator {
         for (BuildScenarioResult scenario : allScenarios) {
             writer.write("<td>");
             writer.write(scenario.getScenarioDefinition().getTasksDisplayName());
+            writer.write("</td>");
+        }
+        writer.write("</tr>\n");
+        writer.write("<tr><td>Commands</td>");
+        for (BuildScenarioResult scenario : allScenarios) {
+            writer.write("<td>");
+            ScenarioDefinition scenarioDefinition = scenario.getScenarioDefinition();
+            if (scenarioDefinition instanceof BazelScenarioDefinition) {
+                List<String> commands = ((BazelScenarioDefinition) scenarioDefinition).getCommands();
+                writer.write(StringUtils.join(commands, " "));
+            } else if (scenarioDefinition instanceof GradleScenarioDefinition) {
+                List<String> commands = ((GradleScenarioDefinition) scenarioDefinition).getGradleArgs();
+                writer.write(StringUtils.join(commands, " "));
+            } else {
+                writer.write("");
+            }
             writer.write("</td>");
         }
         writer.write("</tr>\n");
