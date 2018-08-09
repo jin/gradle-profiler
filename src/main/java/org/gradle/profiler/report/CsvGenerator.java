@@ -2,9 +2,8 @@ package org.gradle.profiler.report;
 
 import com.kstruct.gethostname4j.Hostname;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.gradle.profiler.BenchmarkResult;
-import org.gradle.profiler.BuildInvocationResult;
-import org.gradle.profiler.BuildScenarioResult;
+import org.gradle.internal.impldep.org.apache.commons.lang.StringUtils;
+import org.gradle.profiler.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -64,6 +63,22 @@ public class CsvGenerator extends AbstractGenerator {
             writer.write(result.getScenarioDefinition().getTasksDisplayName());
         }
         writer.newLine();
+        writer.write("commands");
+        for (BuildScenarioResult result : allScenarios) {
+            ScenarioDefinition scenarioDefinition = result.getScenarioDefinition();
+            writer.write(",");
+            if (scenarioDefinition instanceof BazelScenarioDefinition) {
+                List<String> commands = ((BazelScenarioDefinition) scenarioDefinition).getCommands();
+                writer.write(StringUtils.join(commands, " "));
+            } else if (scenarioDefinition instanceof GradleScenarioDefinition) {
+                List<String> commands = ((GradleScenarioDefinition) scenarioDefinition).getGradleArgs();
+                writer.write(StringUtils.join(commands, " "));
+            } else {
+                writer.write("");
+            }
+        }
+        writer.newLine();
+
         int maxRows = allScenarios.stream().mapToInt(v -> v.getResults().size()).max().orElse(0);
         for (int row = 0; row < maxRows; row++) {
             for (BuildScenarioResult result : allScenarios) {
